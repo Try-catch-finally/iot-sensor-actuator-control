@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <title>物联网应用技术-传感器与执行器控制</title>
+</head>
+
+<body>
+    <div class="header">
+        <h1>物联网应用技术-传感器与执行器控制</h1>
+        <div class="status" id="connectionStatus">连接状态：未连接</div>
+    </div>
+
+    <!-- 悬浮添加按钮 -->
+    <div class="float-add-btn-wrapper">
+        <button class="float-add-btn" type="button">+</button>
+    </div>
+
+    <!-- 自定义弹窗遮罩层 -->
+    <div class="modal-overlay" id="modalOverlay"></div>
+
+    <!-- 确认弹窗 -->
+    <div class="modal confirm-modal" id="confirmModal">
+        <div class="modal-header">
+            <h3>确认删除</h3>
+            <button class="modal-close" type="button">×</button>
+        </div>
+        <div class="modal-body">
+            <p id="confirmMessage">确定要删除吗？</p>
+            <div class="confirm-actions">
+                <button class="confirm-btn confirm-yes" type="button">确定</button>
+                <button class="confirm-btn confirm-no" type="button">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加选择弹窗 -->
+    <div class="modal" id="addModal">
+        <div class="modal-header">
+            <h3>添加设备</h3>
+            <button class="modal-close" type="button">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="modal-options">
+                <button class="modal-option-btn" type="button" data-open="sensor">
+                    <span class="modal-option-icon">📡</span>
+                    <span class="modal-option-text">添加传感器</span>
+                </button>
+                <button class="modal-option-btn" type="button" data-open="actuator">
+                    <span class="modal-option-icon">⚡</span>
+                    <span class="modal-option-text">添加执行器</span>
+                </button>
+                <button class="modal-option-btn" type="button" data-open="scene">
+                    <span class="modal-option-icon">🔗</span>
+                    <span class="modal-option-text">添加场景联动</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 传感器添加弹窗 -->
+    <div class="modal" id="sensorModal">
+        <div class="modal-header">
+            <h3>添加传感器</h3>
+            <button class="modal-close" type="button">×</button>
+        </div>
+        <div class="modal-body">
+            <form id="sensorForm">
+                <div class="modal-form">
+                    <div class="form-group span-2">
+                        <label for="sensorType">传感器类型</label>
+                        <select id="sensorType">
+                            <option value="">-- 请选择传感器类型 --</option>
+                            <option value="lightSensor">光照传感器</option>
+                            <option value="tempSensor">温度传感器</option>
+                            <option value="humiditySensor">湿度传感器</option>
+                            <option value="noiseSensor">噪声传感器</option>
+                            <option value="pressureSensor">压力传感器</option>
+                            <option value="co2Sensor">CO2传感器</option>
+                            <option value="waterLevelSensor">水位传感器</option>
+                            <option value="flowSensor">流量传感器</option>
+                            <option value="vibrationSensor">振动传感器</option>
+                            <option value="voltageSensor">电压传感器</option>
+                            <option value="currentSensor">电流传感器</option>
+                            <option value="smokeSensor">烟雾传感器</option>
+                            <option value="irSensor">红外传感器</option>
+                            <option value="ultrasonicSensor">超声波传感器</option>
+                            <option value="phSensor">pH传感器</option>
+                            <option value="custom">自定义传感器</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sensorName">传感器名称</label>
+                        <input type="text" id="sensorName" placeholder="输入传感器名称" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="slaveAddr">从机地址 (HEX)</label>
+                        <select id="slaveAddr">
+                            <option value="0x01">0x01</option>
+                            <option value="0x02">0x02</option>
+                            <option value="0x03">0x03</option>
+                            <option value="0x04">0x04</option>
+                            <option value="0x05">0x05</option>
+                            <option value="0x06">0x06</option>
+                            <option value="0x07">0x07</option>
+                            <option value="0x08">0x08</option>
+                            <option value="0x09">0x09</option>
+                            <option value="0x0A">0x0A</option>
+                            <option value="0x0B">0x0B</option>
+                            <option value="0x0C">0x0C</option>
+                            <option value="0x0D">0x0D</option>
+                            <option value="0x0E">0x0E</option>
+                            <option value="0x0F">0x0F</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="funcCode">功能码 (HEX)</label>
+                        <select id="funcCode">
+                            <option value="0x01">0x01 (读取线圈状态)</option>
+                            <option value="0x02">0x02 (读取离散输入)</option>
+                            <option value="0x03">0x03 (读取保持寄存器)</option>
+                            <option value="0x04">0x04 (读取输入寄存器)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="startReg">起始寄存器 (HEX)</label>
+                        <select id="startReg">
+                            <option value="0x0000">0x0000</option>
+                            <option value="0x0001">0x0001</option>
+                            <option value="0x0002">0x0002</option>
+                            <option value="0x0003">0x0003</option>
+                            <option value="0x0004">0x0004</option>
+                            <option value="0x0005">0x0005</option>
+                            <option value="0x0006">0x0006</option>
+                            <option value="0x0007">0x0007</option>
+                            <option value="0x0008">0x0008</option>
+                            <option value="0x0009">0x0009</option>
+                            <option value="0x000A">0x000A</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="regCount">读取寄存器数量</label>
+                        <select id="regCount">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="dataUnit">数据单位</label>
+                        <select id="dataUnit">
+                            <option value="lux">lux (光照)</option>
+                            <option value="°C">°C (温度)</option>
+                            <option value="%">% (湿度)</option>
+                            <option value="dB">dB (噪声)</option>
+                            <option value="V">V (电压)</option>
+                            <option value="A">A (电流)</option>
+                            <option value="Pa">Pa (压力)</option>
+                            <option value="m/s">m/s (速度)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="requestInterval">请求周期 (秒)</label>
+                        <select id="requestInterval">
+                            <option value="1000">1秒</option>
+                            <option value="2000">2秒</option>
+                            <option value="3000">3秒</option>
+                            <option value="4000">4秒</option>
+                            <option value="5000">5秒</option>
+                            <option value="6000">6秒</option>
+                            <option value="7000">7秒</option>
+                            <option value="8000">8秒</option>
+                            <option value="10000">10秒</option>
+                            <option value="15000">15秒</option>
+                            <option value="30000">30秒</option>
+                            <option value="60000">60秒</option>
+                        </select>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="submit-btn">添加传感器</button>
+                        <button type="button" class="reset-btn" data-close>取消</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 执行器添加弹窗 -->
+    <div class="modal" id="actuatorModal">
+        <div class="modal-header">
+            <h3>添加执行器</h3>
+            <button class="modal-close" type="button">×</button>
+        </div>
+        <div class="modal-body">
+            <form id="actuatorForm">
+                <div class="modal-form">
+                    <div class="form-group span-2">
+                        <label for="actuatorType">执行器类型</label>
+                        <select id="actuatorType">
+                            <option value="">-- 请选择执行器类型 --</option>
+                            <option value="doorLock">门锁</option>
+                            <option value="alarmLight">报警灯</option>
+                            <option value="fan">风扇</option>
+                            <option value="relay">继电器</option>
+                            <option value="solenoidValve">电磁阀</option>
+                            <option value="ledLight">LED灯</option>
+                            <option value="motor">电机</option>
+                            <option value="heater">加热器</option>
+                            <option value="cooler">冷却器</option>
+                            <option value="buzzer">蜂鸣器</option>
+                            <option value="servoMotor">伺服电机</option>
+                            <option value="stepperMotor">步进电机</option>
+                            <option value="waterPump">水泵</option>
+                            <option value="airPump">气泵</option>
+                            <option value="electromagnet">电磁铁</option>
+                            <option value="heatingPlate">加热板</option>
+                            <option value="coolingFan">冷却风扇</option>
+                            <option value="custom">自定义执行器</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="actuatorName">执行器名称</label>
+                        <input type="text" id="actuatorName" placeholder="输入执行器名称" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="actuatorSlaveAddr">从机地址 (HEX)</label>
+                        <select id="actuatorSlaveAddr">
+                            <option value="0x01">0x01</option>
+                            <option value="0x02">0x02</option>
+                            <option value="0x03">0x03</option>
+                            <option value="0x04">0x04</option>
+                            <option value="0x05">0x05</option>
+                            <option value="0x06">0x06</option>
+                            <option value="0x07">0x07</option>
+                            <option value="0x08">0x08</option>
+                            <option value="0x09">0x09</option>
+                            <option value="0x0A">0x0A</option>
+                            <option value="0x0B">0x0B</option>
+                            <option value="0x0C">0x0C</option>
+                            <option value="0x0D">0x0D</option>
+                            <option value="0x0E">0x0E</option>
+                            <option value="0x0F">0x0F</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="actuatorFuncCode">功能码 (HEX)</label>
+                        <select id="actuatorFuncCode">
+                            <option value="0x05">0x05 (写单个线圈)</option>
+                            <option value="0x06">0x06 (写单个寄存器)</option>
+                            <option value="0x0F">0x0F (写多个线圈)</option>
+                            <option value="0x10">0x10 (写多个寄存器)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="actuatorStartReg">起始地址 (HEX)</label>
+                        <select id="actuatorStartReg">
+                            <option value="0x0000">0x0000</option>
+                            <option value="0x0001">0x0001</option>
+                            <option value="0x0002">0x0002</option>
+                            <option value="0x0003">0x0003</option>
+                            <option value="0x0004">0x0004</option>
+                            <option value="0x0005">0x0005</option>
+                            <option value="0x0006">0x0006</option>
+                            <option value="0x0007">0x0007</option>
+                            <option value="0x0008">0x0008</option>
+                            <option value="0x0009">0x0009</option>
+                            <option value="0x000A">0x000A</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="actuatorRegCount">数量</label>
+                        <select id="actuatorRegCount">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="actuatorWriteValue">写入值 (HEX)</label>
+                        <input type="text" id="actuatorWriteValue" value="0xFF00" placeholder="输入写入值">
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="submit-btn">添加执行器</button>
+                        <button type="button" class="reset-btn" data-close>取消</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 场景联动添加弹窗 -->
+    <div class="modal" id="sceneModal">
+        <div class="modal-header">
+            <h3>添加场景联动</h3>
+            <button class="modal-close" type="button">×</button>
+        </div>
+        <div class="modal-body">
+            <form id="sceneForm">
+                <div class="modal-form">
+                    <div class="form-group span-2">
+                        <label for="sceneName">场景名称</label>
+                        <input type="text" id="sceneName" placeholder="输入场景名称" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="triggerSensor">触发传感器</label>
+                        <select id="triggerSensor">
+                            <option value="">-- 请选择传感器 --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="triggerCondition">触发条件</label>
+                        <select id="triggerCondition">
+                            <option value="gt">大于 (&gt;)</option>
+                            <option value="lt">小于 (&lt;)</option>
+                            <option value="ge">大于等于 (&gt;=)</option>
+                            <option value="le">小于等于 (&lt;=)</option>
+                            <option value="eq">等于 (=)</option>
+                            <option value="ne">不等于 (!=)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="triggerValue">触发值</label>
+                        <input type="number" id="triggerValue" placeholder="输入触发值" step="any" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="actionActuator">联动设备</label>
+                        <select id="actionActuator">
+                            <option value="">-- 请选择执行器 --</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="actionState">设备状态</label>
+                        <select id="actionState">
+                            <option value="on">开启</option>
+                            <option value="off">关闭</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sceneEnabled">启用场景</label>
+                        <select id="sceneEnabled">
+                            <option value="true">是</option>
+                            <option value="false">否</option>
+                        </select>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="submit-btn">添加场景</button>
+                        <button type="button" class="reset-btn" data-close>取消</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="sensor-group">
+        <h3>传感器</h3>
+        <div id="sensorContainer"></div>
+    </div>
+
+    <div class="actuator-group">
+        <h3>执行器</h3>
+        <div id="actuatorContainer"></div>
+    </div>
+
+    <div class="scene-group">
+        <h3>场景联动</h3>
+        <div id="sceneContainer"></div>
+    </div>
+
+    <script src="/mqttws31.min.js"></script>
+    <script type="module" src="/src/main.js"></script>
+</body>
+
+</html>
